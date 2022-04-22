@@ -32,7 +32,7 @@ app.get("/search", (req, res) => {
 app.post("/customer", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    if ( (email && email.length <= MIN_EMAIL_LEN) || !email) {
+    if ((email && email.length <= MIN_EMAIL_LEN) || !email) {
         return res.status(400).json({ done: false, message: `Email must be greater than ${MIN_EMAIL_LEN} characters.` });
     }
     if ((password && password.length < MIN_PASS_LEN) || !password) {
@@ -46,6 +46,35 @@ app.post("/customer", (req, res) => {
                 res.status(500).json({ done: false, message: "The customer was not added due to an error." });
             });
     }
+});
+
+app.post("/place", (req, res) => {
+    const name = req.body.name;
+    const category_id = req.body.category_name;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+    const description = req.body.description;
+
+    store.addPlace(name, category_id, latitude, longitude, description)
+        .then(x => {
+            res.json({ done: true, id: x.id, message: "Place added." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "The place was not added due to an error." })
+        });
+});
+
+app.post("/category", (req, res) => {
+    const name = req.body.name;
+
+    store.addCategory(name)
+        .then(x => {
+            res.json({ done: true, id: x.id, message: "Category added." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "The category was not added due to an error." })
+        })
+
 });
 
 app.listen(port, () => {

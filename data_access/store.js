@@ -35,6 +35,22 @@ let store = {
     addCustomer: (email, password) => {
         const hash = bcrypt.hashSync(password, 10);
         return pool.query('insert into findnearbyplaces.customer (email, password) values ($1, $2)', [email, hash]);
+    },
+
+    addPlace: (name, category_id, latitude, longitude, description) => {
+        const query = `insert into findnearbyplaces.place (name, latitude, longitude, description, category_id, customer_id
+             values ($1, $2, $3, $4, $5) returning id`;
+        return pool.query(query, [name, category_id, latitude, longitude, description])
+            .then(x => {
+                return { id: x.rows[0].id };
+            });
+    },
+
+    addCategory: (name) => {
+        return pool.query('insert into findnearbyplaces.category (name) values ($1) returning id', [name])
+            .then(x => {
+                return { id: x.rows[0].id };
+            })
     }
 };
 
