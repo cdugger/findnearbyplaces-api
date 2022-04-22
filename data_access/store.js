@@ -51,6 +51,44 @@ let store = {
             .then(x => {
                 return { id: x.rows[0].id };
             })
+    },
+
+    addPhoto: (photo) => {
+        return pool.query('insert into findnearbyplaces.photo (file) values($1) returning id', [photo])
+            .then(x => {
+                return { id: x.rows[0].id };
+            })
+    },
+
+    addPhotoToPlace: (photo, place_id) => {
+        return addPhoto(photo)
+            .then(x => {
+                const photo_id = x.id;
+                return pool.query('insert into findnearbyplaces.place_photo (location_id, photo_id) values ($1, $2)', [place_id, photo_id])
+                    .then(y => {
+                        return { id: photo_id };
+                    });
+            }).catch(err => {
+                return { valid: false, message: "Invalid photo." };
+            })
+    },
+
+    addPhotoToReview: (photo, review_id) => {
+        return addPhoto(photo)
+        .then(x => {
+            const photo_id = x.id;
+            return pool.query('insert into findnearbyplaces.review_photo (review_id, photo_id) values ($1, $2)', [review_id, photo_id])
+                .then(y => {
+                    return { id: photo_id };
+                });
+        }).catch(err => {
+            return { valid: false, message: "Invalid photo." };
+        });
+    },
+
+    addReview: (place_id, comment, rating) => {
+        return pool.query('insert into findnearbyplaces.review (location_id, text, rating) values ($1, $2, $3)', [place_id, comment, rating]);
+
     }
 };
 

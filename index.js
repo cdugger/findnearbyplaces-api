@@ -32,6 +32,7 @@ app.get("/search", (req, res) => {
 app.post("/customer", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
+
     if ((email && email.length <= MIN_EMAIL_LEN) || !email) {
         return res.status(400).json({ done: false, message: `Email must be greater than ${MIN_EMAIL_LEN} characters.` });
     }
@@ -74,6 +75,51 @@ app.post("/category", (req, res) => {
             console.log(err);
             res.status(500).json({ done: false, message: "The category was not added due to an error." })
         })
+});
+
+// If the photo is going to be added to the place, the review_id will be null.
+// If the photo is going to be added to a review the place_id will be null.
+app.post("/photo", (req, res) => {
+    const photo = req.body.photo;
+    const place_id = req.body.place_id;
+    const review_id = req.body.review_id;
+
+    if (review_id && place_id) {
+        return { done: false, message: "Use either review_id or place_id, not both." }
+    } else if (review_id) {
+        store.addPhotoToReview(photo, review_id)
+            .then(x => {
+                res.json({ done: true, id: x.id, message: "Review photo added." });
+            }).catch(err => {
+                console.log(err);
+                res.status(500).json({ done: false, message: "Review photo was not added due to an error." });
+            });
+    } else {
+        store.addPhotoToPlace(photo, place_id)
+            .then(x => {
+                res.json({ done: true, id: x.id, message: "Place photo added." });
+            }).catch(err => {
+                console.log(err);
+                res.status(500).json({ done: false, message: "Place photo was not added due to an error." });
+            });
+    }
+});
+
+app.post("/review", (req, res) => {
+    const place_id = req.body.place_id;
+    const comment = req.body.comment;
+    const rating = req.body.rating;
+
+    store.addReview(place_id, comment, rating)
+        .then(x => {
+            res.json({ done: true, message: "Review added." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Review was not added due to an error." });
+        });
+});
+
+app.put("/place", (req, res) => {
 
 });
 
