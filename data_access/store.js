@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 require("dotenv").config();
+const { updateHelper } = require("../util/store");
 
 const connectionString = `postgres://${process.env.DBUSERNAME}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.DATABASEPORT}/${process.env.DATABASE}`;
 const connection = {
@@ -75,20 +76,44 @@ let store = {
 
     addPhotoToReview: (photo, review_id) => {
         return addPhoto(photo)
-        .then(x => {
-            const photo_id = x.id;
-            return pool.query('insert into findnearbyplaces.review_photo (review_id, photo_id) values ($1, $2)', [review_id, photo_id])
-                .then(y => {
-                    return { id: photo_id };
-                });
-        }).catch(err => {
-            return { valid: false, message: "Invalid photo." };
-        });
+            .then(x => {
+                const photo_id = x.id;
+                return pool.query('insert into findnearbyplaces.review_photo (review_id, photo_id) values ($1, $2)', [review_id, photo_id])
+                    .then(y => {
+                        return { id: photo_id };
+                    });
+            }).catch(err => {
+                return { valid: false, message: "Invalid photo." };
+            });
     },
 
     addReview: (place_id, comment, rating) => {
         return pool.query('insert into findnearbyplaces.review (location_id, text, rating) values ($1, $2, $3)', [place_id, comment, rating]);
+    },
 
+    updatePlace: (place_id, name, category_id, latitude, longitude, description) => {
+        const updateQuery = updateHelper('findnearbyplaces.place', place_id, { name, category_id, latitude, longitude, description });
+        console.log(updateQuery);
+        return pool.query(updateQuery.query, updateQuery.values)
+            .then(x => {
+
+            })
+    },
+
+    updatePhoto: (photo_id, photo) => {
+        return pool.query('update findnearbyplaces.photo set photo = $1 where id = $2', [photo, photo_id]);
+    },
+
+    deletePlace: (place_id) => {
+        return pool.query('delete from findnearbyplaces.place where id = $1', [place_id]);
+    },
+
+    deleteReview: (review_id) => {
+        return pool.query('delete from findnearbyplaces.review where id = $1', [review_id]);
+    },
+
+    deletePhoto: (photo_id) => {
+        return pool.query('detete from findnearbyplaces.photo where id = $1', [photo_id])
     }
 };
 

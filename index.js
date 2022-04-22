@@ -120,7 +120,68 @@ app.post("/review", (req, res) => {
 });
 
 app.put("/place", (req, res) => {
+    const place_id = req.body.place_id;
+    const name = req.body.name;
+    const category_id = req.body.category_id;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+    const description = req.body.description;
 
+    store.updatePlace(place_id, name, category_id, latitude, longitude, description)
+        .then(x => {
+            res.json({ done: true, message: "Place successfully updated." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "" })
+        })
+});
+
+app.put("/photo", (req, res) => {
+    const photo_id = req.body.photo_id;
+    const photo = req.body.photo;
+    store.updatePhoto(photo_id, photo)
+        .then(x => {
+            res.json({ done: true, message: "Photo successfully updated. " });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Photo was not updated due to an error." });
+        });
+})
+
+app.delete("/place", (req, res) => {
+    const place_id = req.body.place_id;
+
+    store.deletePlace(place_id)
+        .then(x => {
+            res.json({ done: true, message: "Place successfully deleted." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Place was not deleted due to an error." });
+        });
+});
+
+app.delete("/review", (req, res) => {
+    const review_id = req.body.review_id;
+
+    store.deleteReview(review_id)
+        .then(x => {
+            res.json({ done: true, message: "Review successfully deleted." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Review was not deleted due to an error." });
+        })
+});
+
+app.delete("/photo", (req, res) => {
+    const photo_id = req.body.photo_id;
+
+    store.deletePhoto(photo_id)
+        .then(x => {
+            res.json({ done: true, message: "Photo successfully deleted." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Photo was not deleted due to an error." });
+        })
 });
 
 app.listen(port, () => {
