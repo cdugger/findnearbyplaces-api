@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 require("dotenv").config();
-const { updateHelper } = require("../util/store");
+const { updateHelper, calcCrow } = require("../util/store");
 
 const connectionString = `postgres://${process.env.DBUSERNAME}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.DATABASEPORT}/${process.env.DATABASE}`;
 const connection = {
@@ -11,20 +11,59 @@ const connection = {
 const pool = new Pool(connection);
 
 let store = {
+    // A search term is a place name or a category name or part of a place name or part of a category name.
     search: (search_term, user_location, radius_filter, maximum_results_to_return, category_filter, sort) => {
-        return pool.query('select * from findnearbyplaces.place')
+        const user_coords = user_location.split(',');
+        if (user_coords.length !== 2) {
+            return { valid: false };
+        }
+        const user_latitude = Number(user_coords[0]);
+        const user_longitude = Number(user_coords[1]);
+        if (radius_filter) {
+            // query to calculate the distance between each place and see if it's <= the radius filter
+        }
+        const query = `select lower(p.name) as placename, latitude, longitude, lower(c.name), p.rating as categoryname from findnearbyplaces.place p 
+            join findnearbyplaces.category c on p.category_id = c.id
+            join findnearby_places.place_photo pp on pp_
+            `;
+        return pool.query(query)
             .then((x) => {
                 if (x.rows.length > 0) {
+                    let categoryMatch = false;
+                    let searchTermMatch = false;
                     let result = [];
                     for (let row of x.rows) {
-                        result.push({
-                            bussiness_name: row.name,
-                            address: row.latitude + "," + row.longitude,
-                            category: row.category,
-                            // NOTE: calculating the rating from reviews for every query could be expensive
-                            rating: row.rating,
-                            thumbnail: row.thumbnail,
-                        });
+                        if (radius_filter) {
+                            // distance is in meters
+                            const distance = calcCrow(user_latitude, user_longitude, row.latitude, row.longitude) * 1000.0;
+                            if (distance >= radius_filter) {
+                                // ignore this place if it isn't in range of the user
+                                continue;
+                            }
+                        }
+
+                        if (category_filter) {
+                            if (row.categoryname.indexOf(category_filter) !== -1) {
+                                categoryMatch = true;
+                            }
+                        }
+                        if (row.placename.indexOf(search_term) !== -1 || row.categoryname.indexOf(search_term) !== -1) {
+                            searchTermMatch = true;
+                        }
+
+                        if (categoryMatch || searchTermMatch) {
+                            if (result.length >= result.length) {
+                                break;
+                            }
+                            result.push({
+                                bussiness_name: row.placename,
+                                address: row.latitude + "," + row.longitude,
+                                category: row.categoryname,
+                                rating: row.rating,
+                                thumbnail: row.thumbnail,
+                            });
+                        }
+
                     }
                     return { valid: true, result: result };
                 } else {
@@ -39,9 +78,10 @@ let store = {
     },
 
     addPlace: (name, category_id, latitude, longitude, description) => {
-        const query = `insert into findnearbyplaces.place (name, latitude, longitude, description, category_id, customer_id
+        const query = `insert into findnearbyplaces.place (name, latitude, longitude, description, category_id)
              values ($1, $2, $3, $4, $5) returning id`;
-        return pool.query(query, [name, category_id, latitude, longitude, description])
+        console.log(query);
+        return pool.query(query, [name, latitude, longitude, description, category_id])
             .then(x => {
                 return { id: x.rows[0].id };
             });
@@ -54,37 +94,29 @@ let store = {
             })
     },
 
-    addPhoto: (photo) => {
-        return pool.query('insert into findnearbyplaces.photo (file) values($1) returning id', [photo])
-            .then(x => {
-                return { id: x.rows[0].id };
-            })
-    },
-
     addPhotoToPlace: (photo, place_id) => {
-        return addPhoto(photo)
+        return pool.query('insert into findnearbyplaces.photo (file) values ($1) returning id', [photo])
             .then(x => {
-                const photo_id = x.id;
+                const photo_id = x.rows[0].id;
+                console.log(`The photo id is ${photo_id}`);
                 return pool.query('insert into findnearbyplaces.place_photo (location_id, photo_id) values ($1, $2)', [place_id, photo_id])
                     .then(y => {
                         return { id: photo_id };
                     });
-            }).catch(err => {
-                return { valid: false, message: "Invalid photo." };
-            })
+            });
     },
 
+
+
     addPhotoToReview: (photo, review_id) => {
-        return addPhoto(photo)
+        return pool.query('insert into findnearbyplaces.photo (file) values ($1) returning id', [photo])
             .then(x => {
-                const photo_id = x.id;
+                const photo_id = x.rows[0].id;
                 return pool.query('insert into findnearbyplaces.review_photo (review_id, photo_id) values ($1, $2)', [review_id, photo_id])
                     .then(y => {
                         return { id: photo_id };
                     });
-            }).catch(err => {
-                return { valid: false, message: "Invalid photo." };
-            });
+            })
     },
 
     addReview: (place_id, comment, rating) => {
