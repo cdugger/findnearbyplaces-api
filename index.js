@@ -1,11 +1,59 @@
 const express = require("express");
+const cors = require('cors');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const { MIN_EMAIL_LEN, MIN_PASS_LEN } = require("./util/constraints");
+
 const { store } = require("./data_access/store");
 
 const app = express();
 const port = process.env.PORT || 8000;
 
 app.use(express.json());
+app.use(cors());
+passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(username, password, cb) {
+    store.login(username, password)
+        .then(x => {
+            if (x.valid) {
+                return cb(null, x.user);
+            } else {
+                return cb(null, false, { message: 'Incorrect username or password.' });
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            cb('Something went wrong');
+        });
+}));
+
+app.use((req, res, next) => {
+    console.log(`request url: ${req.url}`);
+    console.log(`request method: ${req.method}`);
+    next();
+});
+
+app.use(session({
+    secret: 'keyboard dog',
+    resave: false,
+    saveUninitialized: false,
+    store: new SQLiteStore({ db: 'sessions.db', dir: './sessions' })
+}));
+
+app.use(passport.authenticate('session'));
+
+passport.serializeUser(function (user, cb) {
+    process.nextTick(function () {
+        cb(null, { id: user.id, username: user.username });
+    });
+});
+
+passport.deserializeUser(function (user, cb) {
+    process.nextTick(function () {
+        return cb(null, user);
+    });
+});
 
 app.get("/search", (req, res) => {
     const search_term = req.query.search_term;
@@ -49,7 +97,23 @@ app.post("/customer", (req, res) => {
     }
 });
 
+app.post("/login", passport.authenticate('local', {
+    successRedirect: '/login/succeeded',
+    failureRedirect: '/login/failed'
+}));
+
+app.get('/login/succeeded', (req, res) => {
+    res.status(200).json({ done: true, message: 'The customer logged in successfully.' });
+});
+
+app.get('/login/failed', (req, res) => {
+    res.status(500).json({ done: false, message: 'The credentials are invalid.' });
+})
+
 app.post("/place", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
     const name = req.body.name;
     const category_id = req.body.category_name;
     const latitude = req.body.latitude;
@@ -106,6 +170,9 @@ app.post("/photo", (req, res) => {
 });
 
 app.post("/review", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
     const place_id = req.body.place_id;
     const comment = req.body.comment;
     const rating = req.body.rating;
@@ -120,6 +187,9 @@ app.post("/review", (req, res) => {
 });
 
 app.put("/place", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
     const place_id = req.body.place_id;
     const name = req.body.name;
     const category_id = req.body.category_id;
@@ -149,6 +219,9 @@ app.put("/photo", (req, res) => {
 })
 
 app.delete("/place", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
     const place_id = req.body.place_id;
 
     store.deletePlace(place_id)
@@ -161,6 +234,9 @@ app.delete("/place", (req, res) => {
 });
 
 app.delete("/review", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
     const review_id = req.body.review_id;
 
     store.deleteReview(review_id)
