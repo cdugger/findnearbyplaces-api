@@ -241,11 +241,11 @@ app.put("/photo", (req, res) => {
         });
 })
 
-app.delete("/place", (req, res) => {
+app.delete("/place/:placeId", (req, res) => {
     if (!req.isAuthenticated()) {
         res.status(401).json({ done: false, message: 'Please log in first.' });
     }
-    const place_id = req.body.place_id;
+    const place_id = req.params.placeId;
 
     store.deletePlace(place_id)
         .then(x => {
@@ -256,11 +256,11 @@ app.delete("/place", (req, res) => {
         });
 });
 
-app.delete("/review", (req, res) => {
+app.delete("/review/:reviewId", (req, res) => {
     if (!req.isAuthenticated()) {
         res.status(401).json({ done: false, message: 'Please log in first.' });
     }
-    const review_id = req.body.review_id;
+    const review_id = req.params.reviewId;
 
     store.deleteReview(review_id)
         .then(x => {
@@ -271,8 +271,12 @@ app.delete("/review", (req, res) => {
         })
 });
 
-app.delete("/photo", (req, res) => {
-    const photo_id = req.body.photo_id;
+app.delete("/photo/:photoId", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
+
+    const photo_id = req.params.photoId;
 
     store.deletePhoto(photo_id)
         .then(x => {
