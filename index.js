@@ -115,12 +115,13 @@ app.post("/place", (req, res) => {
         res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const name = req.body.name;
-    const category_id = req.body.category_name;
+    const category_id = req.body.category_id;
     const latitude = req.body.latitude;
     const longitude = req.body.longitude;
     const description = req.body.description;
+    const customer_id = req.user.id;
 
-    store.addPlace(name, category_id, latitude, longitude, description)
+    store.addPlace(name, category_id, latitude, longitude, description, customer_id)
         .then(x => {
             res.json({ done: true, id: x.id, message: "Place added." });
         }).catch(err => {
@@ -176,10 +177,15 @@ app.post("/review", (req, res) => {
     const place_id = req.body.place_id;
     const comment = req.body.comment;
     const rating = req.body.rating;
+    const customer_id = req.user.id;
 
-    store.addReview(place_id, comment, rating)
+    if (rating < 0 || rating > 10) {
+        res.status(400).json({ done: false, message: "Review rating must be between 1 and 10" });
+    }
+
+    store.addReview(place_id, comment, rating, customer_id)
         .then(x => {
-            res.json({ done: true, message: "Review added." });
+            res.json({ done: true, id: x.id, message: "Review added." });
         }).catch(err => {
             console.log(err);
             res.status(500).json({ done: false, message: "Review was not added due to an error." });
@@ -202,7 +208,24 @@ app.put("/place", (req, res) => {
             res.json({ done: true, message: "Place successfully updated." });
         }).catch(err => {
             console.log(err);
-            res.status(500).json({ done: false, message: "" })
+            res.status(500).json({ done: false, message: "Something went wrong." })
+        })
+});
+
+app.put("/review", (req, res) => {
+    if (!req.isAuthenticated()) {
+        res.status(401).json({ done: false, message: 'Please log in first.' });
+    }
+    const review_id = req.body.review_id;
+    const comment = req.body.comment;
+    const rating = req.body.rating;
+
+    store.updateReview(review_id, comment, rating)
+        .then(x => {
+            res.json({ done: true, message: "Review successfully updated." });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Something went wrong." });
         })
 });
 
