@@ -81,6 +81,17 @@ let store = {
             });
     },
 
+    getPlace: (place_id) => {
+        return pool.query(`select * from findnearbyplaces.place where id = $1`, [place_id])
+            .then(x => {
+                if(x.rows.length > 0) {
+                    return { valid: true, result: x.rows[0]}
+                } else {
+                    return { valid: false };
+                }
+            })
+    },
+
     getCategories: () => {
         return pool.query('select name, id from findnearbyplaces.category')
             .then(x => {

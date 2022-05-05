@@ -125,6 +125,22 @@ app.get('/login/failed', (req, res) => {
     res.status(500).json({ done: false, message: 'The credentials are invalid.' });
 })
 
+app.get("/place/:id", (req, res) => {
+    const place_id = req.params.id;
+    store.getPlace(place_id)
+        .then(x => {
+            if(x.valid) {
+                res.json({ done: true, result: x.result});
+            } else {
+                res.status(404).json({ done: false, message: "Place not found"})
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Something went wrong"})
+        })
+});
+
 app.post("/place", (req, res) => {
     if (!req.isAuthenticated()) {
         res.status(401).json({ done: false, message: 'Please log in first.' });
