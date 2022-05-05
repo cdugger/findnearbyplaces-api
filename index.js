@@ -10,9 +10,13 @@ const { store } = require("./data_access/store");
 
 const app = express();
 const port = process.env.PORT || 8000;
+const frontendURL = 'http://localhost:3000';
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: frontendURL,
+    credentials: true
+}));
 passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(username, password, cb) {
     store.login(username, password)
         .then(x => {
@@ -110,6 +114,11 @@ app.post("/customer", (req, res) => {
                 res.status(500).json({ done: false, message: "The customer was not added due to an error." });
             });
     }
+});
+
+app.post('/logout', (req, res) => {
+    req.logout();
+    res.json({ done: true, message: 'The customer signed out successfully' })
 });
 
 app.post("/login", passport.authenticate('local', {
