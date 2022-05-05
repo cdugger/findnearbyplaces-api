@@ -77,6 +77,21 @@ app.get("/search", (req, res) => {
         });
 });
 
+app.get("/categories", (req, res) => {
+    store.getCategories()
+        .then(categories => {
+            if (categories) {
+                res.json({ done: true, result: categories });
+            } else {
+                res.status(404).json({ done: false, message: "Unable to retrieve categories." });
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: 'Something went wrong' })
+        })
+})
+
 app.post("/customer", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;

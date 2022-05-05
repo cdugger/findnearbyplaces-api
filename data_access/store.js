@@ -81,6 +81,17 @@ let store = {
             });
     },
 
+    getCategories: () => {
+        return pool.query('select name, id from findnearbyplaces.category')
+            .then(x => {
+                if (x.rows.length > 0) {
+                    return x.rows.map(category => {
+                        return { id: category.id, name: category.name };
+                    })
+                }
+            })
+    },
+
     login: (email, password) => {
         return pool.query('select id, email, password from findnearbyplaces.customer where email = $1', [email])
             .then(x => {
