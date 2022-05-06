@@ -59,6 +59,10 @@ passport.deserializeUser(function (user, cb) {
     });
 });
 
+app.get("/", (req, res) => {
+    res.status(200).json({ done: true, message: 'Backend is up!' });
+})
+
 app.post("/search", (req, res) => {
     const search_term = req.body.search_term;
     const user_location = req.body.user_location;
