@@ -118,7 +118,12 @@ let store = {
     },
 
     getReviews: (place_id) => {
-        return pool.query('select r.text, r.rating, c.email from findnearbyplaces.review r join findnearbyplaces.customer c on r.customer_id = c.id where location_id = $1', [place_id])
+        const queryStr = `select r.text, r.rating, c.email, p.file from findnearbyplaces.review r
+         join findnearbyplaces.customer c on r.customer_id = c.id
+         join findnearbyplaces.review_photo rp on rp.review_id = r.id
+         join findnearbyplaces.photo p on rp.photo_id = p.id
+          where location_id = $1`
+        return pool.query(queryStr, [place_id])
             .then(x => {
                 return x.rows;
             })
