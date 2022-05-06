@@ -152,7 +152,7 @@ app.get("/place/:id", (req, res) => {
 
 app.post("/place", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const name = req.body.name;
     const category_id = req.body.category_id;
@@ -212,7 +212,7 @@ app.post("/photo", (req, res) => {
 
 app.post("/review", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const place_id = req.body.place_id;
     const comment = req.body.comment;
@@ -234,7 +234,7 @@ app.post("/review", (req, res) => {
 
 app.put("/place", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const place_id = req.body.place_id;
     const name = req.body.name;
@@ -254,7 +254,7 @@ app.put("/place", (req, res) => {
 
 app.put("/review", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const review_id = req.body.review_id;
     const comment = req.body.comment;
@@ -283,7 +283,7 @@ app.put("/photo", (req, res) => {
 
 app.delete("/place/:placeId", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const place_id = req.params.placeId;
 
@@ -298,7 +298,7 @@ app.delete("/place/:placeId", (req, res) => {
 
 app.delete("/review/:reviewId", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const review_id = req.params.reviewId;
 
@@ -313,7 +313,7 @@ app.delete("/review/:reviewId", (req, res) => {
 
 app.delete("/photo/:photoId", (req, res) => {
     if (!req.isAuthenticated()) {
-        res.status(401).json({ done: false, message: 'Please log in first.' });
+        return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
 
     const photo_id = req.params.photoId;
