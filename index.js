@@ -59,16 +59,16 @@ passport.deserializeUser(function (user, cb) {
     });
 });
 
-app.get("/search", (req, res) => {
-    const search_term = req.query.search_term;
-    const user_location = req.query.user_location;
-    const radius_filter = Number(req.query.radius_filter);
-    const maximum_results_to_return = Number(req.query.maximum_results_to_return);
-    const category_filter = req.query.category_filter;
-    const sort = Number(req.query.sort);
+app.post("/search", (req, res) => {
+    const search_term = req.body.search_term;
+    const user_location = req.body.user_location;
+    const radius_filter = Number(req.body.radius_filter);
+    const maximum_results_to_return = Number(req.body.maximum_results_to_return);
+    const category_filter = req.body.category_filter;
+    const sort = Number(req.body.sort);
 
     store.search(search_term, user_location, radius_filter, maximum_results_to_return, category_filter, sort)
-        .then((x) => {
+        .then(x => {
             if (x.valid) {
                 res.json({ done: true, result: x.result });
             } else {

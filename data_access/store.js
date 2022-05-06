@@ -24,6 +24,7 @@ let store = {
         }
         const query = `select lower(p.name) as placename, latitude, longitude, lower(c.name) as categoryname from findnearbyplaces.place p 
             join findnearbyplaces.category c on p.category_id = c.id`;
+        console.log(query)
         return pool.query(query)
             .then((x) => {
                 console.log(x.rows);
@@ -35,7 +36,8 @@ let store = {
                         if (radius_filter) {
                             console.log('Using radius filter!');
                             // distance is in meters
-                            const distance = calcCrow(user_latitude, user_longitude, row.latitude, row.longitude) * 1000.0;
+                            const distance = calcCrow(user_latitude, user_longitude, row.latitude, row.longitude);
+                            console.log(distance)
                             if (distance >= radius_filter) {
                                 // ignore this place if it isn't in range of the user
                                 continue;
@@ -60,7 +62,7 @@ let store = {
                                 break;
                             }
                             result.push({
-                                bussiness_name: row.placename,
+                                name: row.placename,
                                 address: row.latitude + "," + row.longitude,
                                 category: row.categoryname,
                                 // TODO calculate rating
