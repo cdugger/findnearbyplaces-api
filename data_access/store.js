@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 require("dotenv").config();
-const { updateHelper, calcCrow } = require("../util/store");
+const { updateHelper, getDistance } = require("../util/store");
 
 const connectionString = `postgres://${process.env.DBUSERNAME}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.DATABASEPORT}/${process.env.DATABASE}`;
 const connection = {
@@ -32,15 +32,16 @@ let store = {
             .then((x) => {
                 console.log(x.rows);
                 if (x.rows.length > 0) {
-                    let categoryMatch = false;
-                    let searchTermMatch = false;
+
                     let result = [];
                     for (let row of x.rows) {
+                        let categoryMatch = false;
+                        let searchTermMatch = false;
                         if (radius_filter) {
                             console.log('Using radius filter!');
                             // distance is in meters
-                            const distance = calcCrow(user_latitude, user_longitude, row.latitude, row.longitude);
-                            console.log(distance)
+                            const distance = getDistance(user_latitude, user_longitude, row.latitude, row.longitude);
+                            console.log('The distance is ' + distance);
                             if (distance >= radius_filter) {
                                 // ignore this place if it isn't in range of the user
                                 continue;
@@ -48,14 +49,12 @@ let store = {
                         }
 
                         if (category_filter) {
-                            console.log('Using category filter!')
                             if (row.categoryname.indexOf(category_filter.toLowerCase()) !== -1) {
                                 categoryMatch = true;
                             }
                         }
                         console.log(row.placename + " " + row.categoryname);
-                        if (row.placename.indexOf(search_term.toLowerCase()) !== -1 || row.categoryname.indexOf(search_term.toLowerCase()) !== -1) {
-                            console.log('Search term found!');
+                        if (row.placename.indexOf(search_term.toLowerCase()) !== -1 || row.description.indexOf(search_term.toLowerCase()) !== -1) {
                             searchTermMatch = true;
                         }
 
