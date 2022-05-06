@@ -32,15 +32,15 @@ let store = {
             .then((x) => {
                 console.log(x.rows);
                 if (x.rows.length > 0) {
-
+                    
                     let result = [];
                     for (let row of x.rows) {
                         let categoryMatch = false;
                         let searchTermMatch = false;
+                        let distance = getDistance(user_latitude, user_longitude, row.latitude, row.longitude);;
                         if (radius_filter > 0) {
                             console.log('Using radius filter!');
                             // distance is in meters
-                            const distance = getDistance(user_latitude, user_longitude, row.latitude, row.longitude);
                             console.log('The distance is ' + distance);
                             if (distance >= radius_filter) {
                                 // ignore this place if it isn't in range of the user
@@ -72,6 +72,7 @@ let store = {
                                 // TODO calculate rating
                                 rating: 10,
                                 thumbnail: row.file,
+                                distance: distance,
                                 id: row.id
                             });
                         } else {
