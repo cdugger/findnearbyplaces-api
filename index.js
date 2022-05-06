@@ -34,6 +34,10 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(usern
 app.use((req, res, next) => {
     console.log(`request url: ${req.url}`);
     console.log(`request method: ${req.method}`);
+    console.log(`request body:`);
+    console.log(req.body);
+    console.log('request cookies:');
+    console.log(req.cookies);
     next();
 });
 
