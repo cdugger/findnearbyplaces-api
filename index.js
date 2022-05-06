@@ -138,15 +138,15 @@ app.get("/place/:id", (req, res) => {
     const place_id = req.params.id;
     store.getPlace(place_id)
         .then(x => {
-            if(x.valid) {
-                res.json({ done: true, result: x.result});
+            if (x.valid) {
+                res.json({ done: true, result: x.result });
             } else {
-                res.status(404).json({ done: false, message: "Place not found"})
+                res.status(404).json({ done: false, message: "Place not found" })
             }
         })
         .catch(err => {
             console.log(err);
-            res.status(500).json({ done: false, message: "Something went wrong"})
+            res.status(500).json({ done: false, message: "Something went wrong" })
         })
 });
 
@@ -286,14 +286,27 @@ app.delete("/place/:placeId", (req, res) => {
         return res.status(401).json({ done: false, message: 'Please log in first.' });
     }
     const place_id = req.params.placeId;
-
-    store.deletePlace(place_id)
+    store.getPlace(place_id)
         .then(x => {
-            res.json({ done: true, message: "Place successfully deleted." });
-        }).catch(err => {
-            console.log(err);
-            res.status(500).json({ done: false, message: "Place was not deleted due to an error." });
-        });
+            if (x.valid) {
+                console.log('The user who owns this place is ' + x.result.customer_id);
+                console.log('The logged in user is ' + req.user.id);
+                if (x.result.customer_id === req.user.id) {
+                    store.deletePlace(place_id)
+                        .then(x => {
+                            res.json({ done: true, message: "Place successfully deleted." });
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(500).json({ done: false, message: "Place was not deleted due to an error." });
+                        });
+                }
+
+            } else {
+                res.status(404).json({ done: false, message: "Place not found." })
+            }
+
+        })
+
 });
 
 app.delete("/review/:reviewId", (req, res) => {
