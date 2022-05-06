@@ -10,11 +10,10 @@ const { store } = require("./data_access/store");
 
 const app = express();
 const port = process.env.PORT || 8000;
-const frontendURL = 'https://cdugger.github.io/findnearbyplaces';
 
 app.use(express.json());
 app.use(cors({
-    origin: frontendURL,
+    origin: 'https://cdugger.github.io',
     credentials: true
 }));
 passport.use(new LocalStrategy({ usernameField: 'email' }, function verify(username, password, cb) {
