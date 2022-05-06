@@ -37,7 +37,7 @@ let store = {
                     for (let row of x.rows) {
                         let categoryMatch = false;
                         let searchTermMatch = false;
-                        if (radius_filter) {
+                        if (radius_filter > 0) {
                             console.log('Using radius filter!');
                             // distance is in meters
                             const distance = getDistance(user_latitude, user_longitude, row.latitude, row.longitude);
@@ -59,6 +59,7 @@ let store = {
                         }
 
                         if (categoryMatch || searchTermMatch) {
+                            console.log('Max: ' + maximum_results_to_return)
                             if (result.length >= maximum_results_to_return) {
                                 console.log('Maximum length reached!')
                                 break;
