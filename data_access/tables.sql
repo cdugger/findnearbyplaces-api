@@ -42,9 +42,8 @@ create table findnearbyplaces.photo
 
 create table findnearbyplaces.place_photo
 (
-    location_id bigint references findnearbyplaces.place(id),
-    photo_id integer references findnearbyplaces.photo(id),
-    primary key (location_id, photo_id)
+    location_id bigint references findnearbyplaces.place(id) on delete cascade,
+    photo_id integer references findnearbyplaces.photo(id)
 )
 
 create table findnearbyplaces.review_photo
