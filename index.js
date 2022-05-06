@@ -124,6 +124,15 @@ app.post('/logout', (req, res) => {
     res.json({ done: true, message: 'The customer signed out successfully' })
 });
 
+app.get('/isloggedin', (req, res) => {
+    if(req.isAuthenticated()) {
+      res.status(200).json({ done: true, result: true });
+    } else {
+      res.status(410).json({ done: false, result: false });
+    }  
+    
+    });
+
 app.post("/login", passport.authenticate('local', {
     successRedirect: '/login/succeeded',
     failureRedirect: '/login/failed'
