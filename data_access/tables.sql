@@ -18,8 +18,8 @@ create table findnearbyplaces.place
 (
     id bigserial primary key,
     name varchar(256) not null,
-    latitude decimal(8,6) not null,
-    longitude decimal(9,6) not null,
+    latitude float8 not null,
+    longitude float8 not null,
     description varchar(512) not null,
     category_id smallint references findnearbyplaces.category(id),
     customer_id integer references findnearbyplaces.customer(id)
