@@ -22,8 +22,11 @@ let store = {
         if (radius_filter) {
             // query to calculate the distance between each place and see if it's <= the radius filter
         }
-        const query = `select lower(p.name) as placename, latitude, longitude, lower(c.name) as categoryname from findnearbyplaces.place p 
-            join findnearbyplaces.category c on p.category_id = c.id`;
+        const query = `select lower(p.name) as placename, latitude, longitude, lower(c.name) as categoryname, p.id, p.description, ph.file
+         from findnearbyplaces.place p 
+         join findnearbyplaces.category c on p.category_id = c.id
+         join findnearbyplaces.place_photo pp on pp.location_id = p.id
+         join findnearbyplaces.photo ph on pp.photo_id = ph.id`;
         console.log(query)
         return pool.query(query)
             .then((x) => {
@@ -65,10 +68,11 @@ let store = {
                                 name: row.placename,
                                 address: row.latitude + "," + row.longitude,
                                 category: row.categoryname,
+                                description: row.description,
                                 // TODO calculate rating
                                 rating: 10,
-                                // TODO thumbnail
-                                thumbnail: "",
+                                thumbnail: row.file,
+                                id: row.id
                             });
                         } else {
                             console.log('NO MATCH!');
@@ -84,13 +88,39 @@ let store = {
     },
 
     getPlace: (place_id) => {
-        return pool.query(`select * from findnearbyplaces.place where id = $1`, [place_id])
+        const queryStr = `select pl.customer_id, pl.name, pl.latitude, pl.longitude, pl.description, c.name as category_name, ph.file from findnearbyplaces.place pl
+         join findnearbyplaces.place_photo pp on pp.location_id = pl.id
+         join findnearbyplaces.photo ph on pp.photo_id = ph.id
+         join findnearbyplaces.category c on pl.category_id = c.id
+         where pl.id = $1`;
+        return pool.query(queryStr, [place_id])
             .then(x => {
-                if(x.rows.length > 0) {
-                    return { valid: true, result: x.rows[0]}
+                console.log(x.rows);
+                if (x.rows.length > 0) {
+                    return { valid: true, result: x.rows[0] }
                 } else {
                     return { valid: false };
                 }
+            })
+    },
+
+    getPlacePhoto: (place_id) => {
+        const queryStr = `select p.file from findnearbyplaces.place_photo pp join findnearbyplaces.photo p on pp.photo_id = p.id
+                            where pp.location_id = $1`;
+        return pool.query(queryStr, [place_id])
+            .then(x => {
+                if (x.rows.length > 0) {
+                    return { valid: true, result: x.rows[0] }
+                } else {
+                    return { valid: false };
+                }
+            })
+    },
+
+    getReviews: (place_id) => {
+        return pool.query('select r.text, r.rating, c.email from findnearbyplaces.review r join findnearbyplaces.customer c on r.customer_id = c.id where location_id = $1', [place_id])
+            .then(x => {
+                return x.rows;
             })
     },
 
@@ -144,15 +174,22 @@ let store = {
     },
 
     addPhotoToPlace: (photo, place_id) => {
-        return pool.query('insert into findnearbyplaces.photo (file) values ($1) returning id', [photo])
-            .then(x => {
-                const photo_id = x.rows[0].id;
-                console.log(`The photo id is ${photo_id}`);
-                return pool.query('insert into findnearbyplaces.place_photo (location_id, photo_id) values ($1, $2)', [place_id, photo_id])
-                    .then(y => {
-                        return { id: photo_id };
-                    });
-            });
+        let cb = x => {
+            const photo_id = x.rows[0].id;
+            console.log(`The photo id is ${photo_id}`);
+            return pool.query('insert into findnearbyplaces.place_photo (location_id, photo_id) values ($1, $2)', [place_id, photo_id])
+                .then(y => {
+                    return { id: photo_id };
+                });
+        };
+
+        if (!photo) {
+            return pool.query('insert into findnearbyplaces.photo (file) values (default) returning id')
+                .then(cb);
+        } else {
+            return pool.query('insert into findnearbyplaces.photo (file) values ($1) returning id', [photo])
+                .then(cb);
+        }
     },
 
     addPhotoToReview: (photo, review_id) => {

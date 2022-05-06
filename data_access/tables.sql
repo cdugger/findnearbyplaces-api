@@ -37,7 +37,7 @@ create table findnearbyplaces.review
 create table findnearbyplaces.photo
 (
     id serial primary key,
-    file bytea not null
+    file varchar(512) not null default 'https://th.bing.com/th/id/OIP.wMAI4g3qYHu9Tqrtrx77bAHaHa'
 )
 
 create table findnearbyplaces.place_photo
@@ -50,5 +50,4 @@ create table findnearbyplaces.review_photo
 (
     review_id integer references findnearbyplaces.review(id),
     photo_id integer references findnearbyplaces.photo(id),
-    primary key (review_id, photo_id)
 )

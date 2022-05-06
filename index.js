@@ -150,6 +150,18 @@ app.get("/place/:id", (req, res) => {
         })
 });
 
+app.get("/reviews/:place_id", (req, res) => {
+    const place_id = req.params.place_id;
+    store.getReviews(place_id)
+        .then(x => {
+            res.json({ done: true, result: x });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ done: false, message: "Something went wrong" })
+        })
+})
+
 app.post("/place", (req, res) => {
     if (!req.isAuthenticated()) {
         return res.status(401).json({ done: false, message: 'Please log in first.' });
@@ -218,9 +230,9 @@ app.post("/review", (req, res) => {
     const comment = req.body.comment;
     const rating = req.body.rating;
     const customer_id = req.user.id;
-
+    console.log(req.body)
     if (rating < 0 || rating > 10) {
-        res.status(400).json({ done: false, message: "Review rating must be between 1 and 10" });
+        return res.status(400).json({ done: false, message: "Review rating must be between 1 and 10" });
     }
 
     store.addReview(place_id, comment, rating, customer_id)
