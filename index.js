@@ -10,7 +10,7 @@ const { store } = require("./data_access/store");
 
 const app = express();
 const port = process.env.PORT || 8000;
-const frontendURL = 'http://localhost:3000';
+const frontendURL = 'https://cdugger.github.io/findnearbyplaces';
 
 app.use(express.json());
 app.use(cors({
